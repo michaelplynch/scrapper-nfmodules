@@ -1,0 +1,38 @@
+name: bioc-module-dispatch
+
+on:
+  workflow_run:
+    workflows: ["BiocJobs"]
+    types: [completed]
+
+jobs:
+  create-dispatch:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Notify bioc-modules
+        env:
+          GH_TOKEN: ${{ secrets.BIOC_MODULES_TOKEN }}
+        run: |
+          PACKAGE=$(Rscript -e "cat(read.dcf('DESCRIPTION')[1,'Package'])")
+          VERSION=$(Rscript -e "cat(read.dcf('DESCRIPTION')[1,'Version'])")
+
+          gh api repos/michaelplynch/bioc-modules/dispatches \
+            --method POST \
+            --field event_type='sync-module' \
+            --raw-field client_payload="$(jq -nc \
+              --arg package "$PACKAGE" \
+              --arg version "$VERSION" \
+              --arg repo "$GITHUB_REPOSITORY" \
+              --arg sha "${{ github.event.workflow_run.head_sha }}" \
+              '{
+                package:$package,
+                version:$version,
+                source_repo:$repo,
+                sha:$sha
+              }')"

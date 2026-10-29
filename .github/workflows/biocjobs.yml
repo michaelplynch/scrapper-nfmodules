@@ -16,9 +16,8 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
       - uses: kevinrue/BiocJobs/biocjobs-action@308105a1b9fd5405568149e6b724c2cd3eea738f
         with:
           base-image: ghcr.io/bioconductor/bioconductor:devel
           image-tag: devel
-          

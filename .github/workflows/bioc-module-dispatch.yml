@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
-
+      - uses: r-lib/actions/setup-r@v2
       - name: Notify bioc-modules
         env:
           GH_TOKEN: ${{ secrets.BIOC_MODULES_TOKEN }}

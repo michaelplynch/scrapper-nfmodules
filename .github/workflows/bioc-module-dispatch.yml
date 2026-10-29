@@ -22,17 +22,21 @@ jobs:
           PACKAGE=$(Rscript -e "cat(read.dcf('DESCRIPTION')[1,'Package'])")
           VERSION=$(Rscript -e "cat(read.dcf('DESCRIPTION')[1,'Version'])")
 
+          jq -n \
+          --arg package "$PACKAGE" \
+          --arg version "$VERSION" \
+          --arg repo "$GITHUB_REPOSITORY" \
+          --arg sha "$GITHUB_SHA" \
+          '{
+            event_type: "sync-module",
+            client_payload: {
+              package: $package,
+              version: $version,
+              source_repo: $repo,
+              sha: $sha
+            }
+          }' > payload.json
+
           gh api repos/michaelplynch/bioc-modules/dispatches \
             --method POST \
-            --field event_type='sync-module' \
-            --raw-field client_payload="$(jq -nc \
-              --arg package "$PACKAGE" \
-              --arg version "$VERSION" \
-              --arg repo "$GITHUB_REPOSITORY" \
-              --arg sha "${{ github.event.workflow_run.head_sha }}" \
-              '{
-                package:$package,
-                version:$version,
-                source_repo:$repo,
-                sha:$sha
-              }')"
+            --input payload.json
